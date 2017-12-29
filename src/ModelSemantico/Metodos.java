@@ -16,14 +16,14 @@ public class Metodos {
     private boolean privado;
     private String nome;
     private String tipo;
-    private ArrayList parametrosNome;
-    private ArrayList parametrosTipo;
-    private ArrayList variaveisLocais;
+    private ArrayList<String> parametrosNome;
+    private ArrayList<String> parametrosTipo;
+    private ArrayList<Variavel> variaveisLocais;
 
   
     
-    public Metodos(boolean privado, String nome, String tipo, ArrayList parametrosNome,
-            ArrayList parametrosTipo, ArrayList variaveisLocais){
+    public Metodos(boolean privado, String nome, String tipo, ArrayList<String> parametrosNome,
+            ArrayList<String> parametrosTipo, ArrayList<Variavel> variaveisLocais){
         this.privado = privado;
         this.nome = nome;
         this.tipo = tipo;
@@ -77,36 +77,36 @@ public class Metodos {
     /**
      * @return the parametrosNome
      */
-    public ArrayList getParametrosNome() {
+    public ArrayList<String> getParametrosNome() {
         return parametrosNome;
     }
 
     /**
      * @param parametrosNome the parametrosNome to set
      */
-    public void setParametrosNome(ArrayList parametrosNome) {
+    public void setParametrosNome(ArrayList<String> parametrosNome) {
         this.parametrosNome = parametrosNome;
     }
 
     /**
      * @return the parametrosTipo
      */
-    public ArrayList getParametrosTipo() {
+    public ArrayList<String> getParametrosTipo() {
         return parametrosTipo;
     }
 
     /**
      * @param parametrosTipo the parametrosTipo to set
      */
-    public void setParametrosTipo(ArrayList parametrosTipo) {
+    public void setParametrosTipo(ArrayList<String> parametrosTipo) {
         this.parametrosTipo = parametrosTipo;
     }
     
-    public ArrayList getVariaveisLocais() {
+    public ArrayList<Variavel> getVariaveisLocais() {
         return variaveisLocais;
     }
 
-    public void setVariaveisLocais(ArrayList variaveisLocais) {
+    public void setVariaveisLocais(ArrayList<Variavel> variaveisLocais) {
         this.variaveisLocais = variaveisLocais;
     }
 }

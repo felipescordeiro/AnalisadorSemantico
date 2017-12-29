@@ -28,10 +28,10 @@ public class Start {
         //System.out.println("tamanho : " + archive.length);
         
         for(int i = 0; i < archive.length; i++){
-        	System.out.println(" " + archive[i].getName());
+        	//System.out.println(" " + archive[i].getName());
         	semantico.start(archive[i].getName());
             //semantico.printLine();
-           //semantico.printVariable();
+            semantico.printVariable();
             semantico.printMetodos();
         }
     }
