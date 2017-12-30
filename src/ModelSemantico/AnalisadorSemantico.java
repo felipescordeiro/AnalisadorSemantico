@@ -31,7 +31,11 @@ public class AnalisadorSemantico {
     ArrayList<Metodos> metodos;
     ArrayList<Classe> classes;
     
+    
+    boolean classe = false;
+    String nameClasse = null;
     int metodo = 0;
+    boolean metodoBool = false;
     boolean isMain = true;
     Stack  pilha;
     public AnalisadorSemantico() {
@@ -116,12 +120,12 @@ public class AnalisadorSemantico {
                         if(dataLineMap.get(i).get(j).contains(":")){ //criar metodos
                            novoMetodo(i, j);
                            j++;
-                        }else {
-                        	pilha.add(dataLineMap.get(i).get(j));
+                           metodoBool = true;
                         }
                     }else if(tokenMap.get(i).get(j).contains("RESERVADA")){
                         if(dataLineMap.get(i).get(j).contains("class")){
                             classe(i, j);
+                            classe = !classe;
                         }else if(dataLineMap.get(i).get(j).contains("final")){
                         }else if(dataLineMap.get(i).get(j).contains("if")){
                         }else if(dataLineMap.get(i).get(j).contains("else")){
@@ -143,11 +147,15 @@ public class AnalisadorSemantico {
                             nextWord(i, j);
                         }
                         
+                    }else if(tokenMap.get(i).get(j).contains("IDENTIFICADOR")){
+                    	nextWord(i, j);
                     }
                    
                 }
             }
         }
+        classe = true;
+        inserirClasse(false, nameClasse, null);
     }
     
     
@@ -166,32 +174,63 @@ public class AnalisadorSemantico {
         int x = j +1;
         if(tokenMap.get(i).get(x).contains("IDENTIFICADOR")){
         	nome = dataLineMap.get(i).get(x);
+        	inserirClasse(true, nome , tipo);
         }
-       
-        System.out.println(nome + " " + tipo );
-        inserirClasse(true, nome , tipo);
+        
+        	nameClasse = nome;
+               
     }
     
     public void inserirClasse(boolean privado, String nome, String tipo){
-    	if(buscarClasse(tipo, nome)){
+    	if(buscarClasse(tipo, nome) && classe){
     		ArrayList<Metodos> metodos = new ArrayList<>();
-    		metodos = escopoClasse(metodos);
-    		
-    		Classe classe = new Classe(privado, nome, tipo, metodos, variaveisGlobais);
+    		metodos = this.metodos;
+    		//System.out.println("Classe: " + nome);
+    		Classe classe = new Classe(privado, nameClasse, tipo, metodos, variaveisGlobais);
     		classes.add(classe);
+    		//this.metodos = new ArrayList<Metodos>();
+    		//variaveisGlobais.clear();
     	}
     }
 
-    private ArrayList<Metodos> escopoClasse(ArrayList<Metodos> metodos2) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+  
 	private boolean buscarClasse(String tipo, String nome) {
-		
-		return false;
+		for(int i = 0; i < classes.size(); i++){
+			 if(classes.get(i).getNome().contains(nome)){
+	 			errors.add("Erro - Já existe uma classe com esse nome");		
+				 return false;
+     		 }	 
+		}
+		return true;
 	}
-    
+	 public void printClasse(){
+	    	for(int x = 0; x < classes.size(); x++){
+	            System.out.println("Classe " + classes.get(x).getNome());
+	            
+	            for(int g = 0; g < classes.get(x).getVariavelList().size(); g++){
+	            	 System.out.println(" TipoGlobal: " + classes.get(x).getVariavelList().get(g).getVariavelTipo()
+	            			 + 
+	 	                    " VariavelGlobal " + classes.get(x).getVariavelList().get(g).getVariavelNome());
+	            }
+	            for(int i = 0; i < classes.get(x).getMetodosList().size(); i++){
+	                System.out.println("nome: " + classes.get(x).getMetodosList().get(i).getNome() + 
+	                        " tipo " + classes.get(x).getMetodosList().get(i).getTipo());
+	                
+	                for(int p = 0; p < classes.get(x).getMetodosList().get(i).getParametrosNome().size(); p++){
+	                System.out.println("nome parametro: " + classes.get(x).getMetodosList().get(i).getParametrosNome().get(p) + 
+	                        " tipo parametro: " + classes.get(x).getMetodosList().get(i).getParametrosTipo().get(p));    
+	                }
+	                for(int j = 0; j < classes.get(x).getMetodosList().get(i).getVariaveisLocais().size(); j++){
+	              	  System.out.println("nome variavel local: " + classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(j).getVariavelNome() + 
+	                            " tipo variavel local: " + classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(j).getVariavelTipo());
+	                }
+	            }
+	            System.out.println("\n");
+	        }
+	    }
+
+	
+	/********************* Variaveis **************************************************/
     public void nextWord(int i, int j){
        
         for(int x = j +1; x < tokenMap.get(i).size(); x++){
@@ -199,6 +238,9 @@ public class AnalisadorSemantico {
             if(tokenMap.get(i).get(x).contains("IDENTIFICADOR")){
                if(tokenMap.get(i).get(x -1 ).contains("RESERVADA") || dataLineMap.get(i).get(x - 1 ).contains(",")){
                     inserirVariavelGlobal(false, dataLineMap.get(i).get(j), dataLineMap.get(i).get(x));
+                }else if(tokenMap.get(i).get(x -1 ).contains("IDENTIFICADOR") || dataLineMap.get(i).get(x - 1 ).contains(",")){
+                	//System.out.println(x + " " + dataLineMap.get(i).get(x) + " " + tokenMap.get(i).get(x));
+                	inserirVariavelGlobal(false, dataLineMap.get(i).get(j), dataLineMap.get(i).get(x));
                 }
             }
         }
@@ -207,8 +249,8 @@ public class AnalisadorSemantico {
     public void printVariable(){
       
         for(int i = 0; i < variaveisGlobais.size(); i++){
-            System.out.println("token: " + variaveisGlobais.get(i).getVariavelTipo() + 
-                    " dado " + variaveisGlobais.get(i).getVariavelNome());
+            System.out.println("TipoGlobal: " + variaveisGlobais.get(i).getVariavelTipo() + 
+                    " VariavelGlobal " + variaveisGlobais.get(i).getVariavelNome());
         }
     }
     public void printLine(){
@@ -218,7 +260,7 @@ public class AnalisadorSemantico {
 
             System.out.println(">>>>>>>>>>>> " + tokenMap.get(i));
                 for(int j = 0; j < tokenMap.get(i).size(); j++){
-                        System.out.println("linha: " + i + "  token " + tokenMap.get(i).get(j) +" dado " + dataLineMap.get(i).get(j));		
+                        System.out.println("linha: " + i + "  tipoGlobal " + tokenMap.get(i).get(j) +" VariavelGlobal " + dataLineMap.get(i).get(j));		
 //					System.out.println("linha: " + i  + " " + tokenMap.get(i).get(j));
                         //System.out.println("===============" + lineMap.get(i).get(j).trim());
 
@@ -228,7 +270,7 @@ public class AnalisadorSemantico {
     }
 
 	public void inserirVariavelGlobal(boolean isPravado,String tipo, String nome){
-        if(buscaVariavelGlobal(tipo, nome)){
+        if(buscaVariavelGlobal(tipo, nome) && !metodoBool){
 	    	Variavel variavel = new Variavel(tipo, nome, isPravado);
 	        variaveisGlobais.add(variavel);
         }
@@ -259,9 +301,10 @@ public class AnalisadorSemantico {
     	
     	for(int i = 0; i < variaveisLocal.size(); i++){
     		if(variaveisLocal.get(i).getVariavelNome().equals(nome)){
-    			if(variaveisLocal.get(i).getVariavelTipo().equals(tipo)){
-					return false;
-    	    	}
+    			//if(variaveisLocal.get(i).getVariavelTipo().equals(tipo)){
+					errors.add("Erro- Essa variável já foi declarada");
+    				return false;
+    	    	//}
     		}
     	}
 		return true;
@@ -273,8 +316,8 @@ public class AnalisadorSemantico {
         
         String nome = null;
         String tipo = null;
-        ArrayList parametroNome = new ArrayList();;
-        ArrayList parametroTipo = new ArrayList();
+        ArrayList<String> parametroNome = new ArrayList<String>();;
+        ArrayList<String> parametroTipo = new ArrayList<String>();
          
              if(tokenMap.get(i).get(x).contains("IDENTIFICADOR")){
                  
@@ -369,13 +412,13 @@ public class AnalisadorSemantico {
         return true;
     }
    
-    public void inserirMetodo(boolean privado, String nome, String tipo, ArrayList parametrosNome, ArrayList parametrosTipo, int i, int j){
+    public void inserirMetodo(boolean privado, String nome, String tipo, ArrayList<String> parametrosNome, ArrayList<String> parametrosTipo, int i, int j){
     	//System.out.println("nome " + nome + " "+  buscaMetodo(nome, tipo, parametrosNome.size()));
     	if(buscaMetodo(nome, tipo, parametrosNome.size())){
     	    //Variaveis locais
     		ArrayList<Variavel> variaveisLocal = new ArrayList<>();
     		variaveisLocal = escopoMetodo(i, j, variaveisLocal);
-    		
+    		//System.out.println("Parametros " + parametrosNome.size());
     		Metodos metodo = new Metodos(privado, nome, tipo, parametrosNome, parametrosTipo, variaveisLocal);
 	        metodos.add(this.metodo,metodo);
 	        this.metodo++;
@@ -452,5 +495,60 @@ public class AnalisadorSemantico {
           }
       }
   }
+
+	public void operacao() {
+		String op1 = null;
+		String op1Tipo = null;
+		String op2 = null;
+		String op2Tipo = null;
+		String op3 = null;
+		String op3Tipo = null;
+		for(int i = 1; i <= lastNumber; i++){
+	          
+            if(dataLineMap.containsKey(i)){
+               // System.out.println("linha: " + i + "  dado linha " + dataLineMap.get(i));
+                for(int j = 0; j < tokenMap.get(i).size(); j++){
+                    if(tokenMap.get(i).get(j).contains("IDENTIFICADOR")){
+                    	op1 = dataLineMap.get(i).get(j);
+                    	System.out.println("OP1" + op1);
+                    	if(tokenMap.get(i).get(j - 1).contains("RELACIONAL")){
+                    		op2 = dataLineMap.get(i).get(j - 2);
+                    		System.out.println("OP2" + op2);
+                    		for(int x = 0; x < classes.size(); x++){//verificacao de variaveis declaradas
+                	          for(int g = 0; g < classes.get(x).getVariavelList().size(); g++){//globais
+                	        	  if(op1.equals(classes.get(x).getVariavelList().get(g).getVariavelNome())){
+                	            		 op1Tipo = classes.get(x).getVariavelList().get(g).getVariavelTipo();
+                	            		 System.out.println("OP1" + op1Tipo);
+                	            	 }
+                	            	 if(op2.equals(classes.get(x).getVariavelList().get(g).getVariavelNome())){
+                	            		 op2Tipo = classes.get(x).getVariavelList().get(g).getVariavelTipo();
+                	            		 System.out.println("OP2" + op2Tipo);
+                	            	 }
+                	            }
+                	            for(int l = 0; l < classes.get(x).getMetodosList().get(i).getVariaveisLocais().size(); l++){//locais
+            	              	   
+            	                            System.out.println("BUCETA " + classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(l).getVariavelTipo());
+            	                             if(op1.equals(classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(l).getVariavelNome())){
+                        	            		 op1Tipo = classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(l).getVariavelTipo();
+                        	            	 }
+                        	            	 if(op2.equals(classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(l).getVariavelNome())){
+                        	            		 op2Tipo = classes.get(x).getMetodosList().get(i).getVariaveisLocais().get(l).getVariavelTipo();
+                        	            	 }       
+            	                }
+                	            
+                	        }//verificação de atribuição de variável
+                    		System.out.println( op1Tipo + "   " + op2Tipo);
+                    		if(op1Tipo.equals(op2Tipo)|| op1Tipo == null){
+                    			System.out.println("ERRO- Variaveis de tipos diferentes" + " " +op1 + " " + op2);
+                    			System.out.println("Variavel nao declarada");
+                    			errors.add("ERRO- Variaveis de tipos diferentes");
+                    		}
+                        }
+                    }
+                }
+            }
+		}
+		
+	}
     
 }

@@ -31,8 +31,10 @@ public class Start {
         	//System.out.println(" " + archive[i].getName());
         	semantico.start(archive[i].getName());
             //semantico.printLine();
-            semantico.printVariable();
-            semantico.printMetodos();
+            //semantico.printVariable();
+            //semantico.printMetodos();
+        	semantico.printClasse();
+        	semantico.operacao();
         }
     }
 }
